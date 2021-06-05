@@ -1,0 +1,141 @@
+#include <LiquidCrystal.h> //Include the library for the LCD Display
+//All of the buttons to set the time (Besides the one for hours) should be able to be pressed 60 or 59 times. The one for hours should be pressed 24 or 23 times.
+int i = 3;// Declare the variable for the switch button to stop/resume the clock (Stop, Set, Go: Gonna have to be pressed 3 times). Set it to pin 4
+int j = 0;//Declare the variable for the switch button for hours. Set it to pin 3
+int k = 0;//Declare the variable for the switch button for minutes. Set it to pin 2
+int MyHour = 23; //Declare variable for the Hours
+unsigned int MyMin = 59; //Delcare a variable for the Minutes
+unsigned int MySec = 55; //Declare a variable for the Seconds
+unsigned long starttime; //Declare start time variable it has no pos/neg sign and it is a large value
+unsigned long currentMillis;
+boolean toggle;
+LiquidCrystal lcd(7, 8, 9, 10, 11, 12); //Delcare the pins that the LCD display will be using
+void setup() {
+  Serial.begin(9600); //Declare the start time of the program
+  pinMode(5, INPUT); // Declare pin for button assigned to stop, set and resume clock
+  pinMode(4, INPUT); // Declare pin for button assigned to hours
+  pinMode(3, INPUT); // Declare pin for button assigned to minutes
+  //pinMode(2, INPUT); // Declare pin for button assigned to seconds
+  lcd.begin(16, 2); // Declare which pins the LCD displays uses for power
+}
+
+void loop() {
+  
+  //This part of the code will do the calculations for the time
+  if (currentMillis - starttime >= 1000) {
+    starttime = currentMillis;
+    ++MySec;
+    if (MySec >= 60) {
+      ++MyMin;
+      if (MyMin == 60) {
+        MyMin = 0;
+        MyHour = MyHour + 1;
+      }
+      MySec = 0;
+      if (MyHour == 24) {
+        MyHour = 0;
+      }
+    }
+    lcd.setCursor(0, 0);
+    if (MyHour < 10) {
+      lcd.print(0);
+    }
+    lcd.print(MyHour);
+
+    lcd.setCursor(2, 0);
+    lcd.print(":");
+    lcd.setCursor(3, 0);
+    if (MyMin < 10) {
+      lcd.print(0);
+    }
+    else {
+      lcd.print("");
+    }
+    lcd.print(MyMin);
+    lcd.setCursor(5, 0);
+    lcd.print(":");
+
+    lcd.setCursor(6, 0);
+    if (MySec < 10) {
+      lcd.print(0);
+    }
+    lcd.println(MySec);
+    lcd.setCursor(8, 0);
+    lcd.print(" ");
+    lcd.setCursor(9, 0);
+    lcd.print(" ");
+  }
+if (digitalRead(5)) { //If the arduino board recognizes the button being pressed
+    delay(500);// Let the delay be .05 seconds
+    i++;//Increase the amount of times the button has been pressed
+  }
+  if (i == 1) { // If the number of times the button is being pressed is 1
+    Serial.println("1");//The clock stops
+    currentMillis = 0;
+    MyHour = 0;
+    MyMin = 0;
+    MySec = -1;
+  }
+  
+
+  if (digitalRead(4)) { //Pin 4 is assigned to set the hours
+    delay(500);
+    j++;
+    Serial.println(MyHour);
+     if (j < 10) {
+      lcd.setCursor(1, 0);
+      lcd.print(j);
+    }
+    else {if (j < 24) {
+        lcd.setCursor(0, 0);
+        lcd.print(j);
+      }
+      else {
+        j = 0;
+        lcd.setCursor(0, 0);
+        lcd.print(j);
+        lcd.setCursor(1, 0);
+        lcd.print(j);
+  }
+    }
+  }
+
+  if (digitalRead(3)) { //Pin 3 is assigned to setting the minutes
+    delay(500);
+    k++;
+    if (k < 10) {
+      lcd.setCursor(4, 0);
+      lcd.print(k);
+    }
+    else {if (k < 60) {
+        lcd.setCursor(3, 0);
+        lcd.print(k);
+      }
+      else {
+        k = 0;
+        lcd.setCursor(3, 0);
+        lcd.print(k);
+        lcd.setCursor(4, 0);
+        lcd.print(k);
+  }
+    }
+  }
+  if (i == 2) {
+    Serial.println("2");
+    currentMillis = 0;
+    MyHour = j;
+    MyMin = k;
+    //Serial.println("2");// The inputs from the user is set
+  }
+  if (i == 3) {
+    Serial.println("3");//The clock resumes from the set time that the user input
+    currentMillis = millis();
+  }
+  if (i == 4) {
+    Serial.println("4");
+    j= 0;
+    k = 0;
+    i = 1;
+  }
+}
+
